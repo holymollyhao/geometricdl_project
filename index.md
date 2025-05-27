@@ -1,4 +1,4 @@
-# Supercharging Graph Neural Networks with Large Language Models
+# AI810 Blog Post (20248056) - Supercharging Graph Neural Networks with Large Language Models
 
 > **TL;DR** We show how to **re‑wire** the edges of a text‑attributed graph with the help of a large language model so that _any_ off‑the‑shelf GNN suddenly gets better — on average by \~2‑3 percentage points, and by **up to 13 pp** on the IMDB benchmark.
 
