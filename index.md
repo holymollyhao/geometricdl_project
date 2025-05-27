@@ -2,7 +2,14 @@
 mathjax: true
 ---
 
-<!-- load MathJax -->
+<script>
+window.MathJax = {
+  tex: {
+    // tell MathJax to process both $…$ and \(...\)
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  }
+};
+</script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <!-- KaTeX -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
@@ -38,11 +45,11 @@ $$
 
 where
 
-- \(\mathcal{V}\) is the set of \(N\) nodes, each with its own text \(t_i\in\mathcal{T}\),
-- \(\mathcal{E}\) is the set of \(M\) undirected edges,
-- and \(\mathbf{A}\in\{0,1\}^{N\times N}\) is the adjacency matrix (\(A\_{ij}=1\) if nodes \(i,j\) are connected).
+- $\mathcal{V}$ is the set of $N$ nodes, each with its own text $t_i\in\mathcal{T}$,
+- $\mathcal{E}$ is the set of $M$ undirected edges,
+- and $\mathbf{A}\in\{0,1\}^{N\times N}$ is the adjacency matrix ($A_{ij}=1$ if nodes $i,j$ are connected).
 
-Each node's text is encoded by a frozen pre-trained language model \(g\_{\boldsymbol\phi}\) (e.g., Sentence-BERT), producing a feature matrix
+Each node's text is encoded by a frozen pre-trained language model $g_{\boldsymbol\phi}$ (e.g., Sentence-BERT), producing a feature matrix
 
 $$
 \mathbf{X} = [\mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_N]^\top
@@ -50,7 +57,7 @@ $$
 \;\in\mathbb{R}^{N\times F}\,.
 $$
 
-A Graph Neural Network \(f\_{\boldsymbol\theta}\) then learns to classify nodes by repeatedly **aggregating** information from each node's neighborhood \(\mathcal{N}\_i\). At layer \(l\), the node update is:
+A Graph Neural Network $f_{\boldsymbol\theta}$ then learns to classify nodes by repeatedly **aggregating** information from each node's neighborhood $\mathcal{N}_i$. At layer $l$, the node update is:
 
 $$
 \mathbf{h}_i^{(l+1)}
@@ -59,22 +66,22 @@ $$
 
 where
 
-- \(\mathbf{h}\_i^{(0)} = \mathbf{x}\_i\),
-- \(\mathrm{AGG}\) might be mean-pooling, attention, or another aggregator,
-- and \(\psi\) fuses the node's own state with its neighbors'.
+- $\mathbf{h}_i^{(0)} = \mathbf{x}_i$,
+- $\mathrm{AGG}$ might be mean-pooling, attention, or another aggregator,
+- and $\psi$ fuses the node's own state with its neighbors'.
 
-After \(L\) layers, the GNN produces logits \(\mathbf{Z} = f\_{\boldsymbol\theta}(\mathbf{X}, \mathbf{A})\), which we turn into class probabilities \(\mathbf{P} = \mathrm{Softmax}(\mathbf{Z})\). Training uses the cross-entropy loss:
+After $L$ layers, the GNN produces logits $\mathbf{Z} = f_{\boldsymbol\theta}(\mathbf{X}, \mathbf{A})$, which we turn into class probabilities $\mathbf{P} = \mathrm{Softmax}(\mathbf{Z})$. Training uses the cross-entropy loss:
 
 $$
 \mathcal{L}_{\boldsymbol\theta}
 = -\frac{1}{N}\sum_{i=1}^{N}\sum_{k=1}^{K} Y_{ik}\,\log P_{ik}\,,
 $$
 
-where \(K\) is the number of classes and \(Y\_{ik}\) are one-hot labels.
+where $K$ is the number of classes and $Y_{ik}$ are one-hot labels.
 
 ### Prompting LLMs
 
-Large Language Models (LLMs) such as GPT-3 [Brown _et al._, 2020] or LLaMA-3 [Touvron _et al._, 2023] with billions of parameters can **reason** straight out of the box—no fine-tuning needed—just by giving them the right **prompt**. You prepend a natural-language instruction \(\mathbf{s}\) to your query sequence \(\mathbf{q} = \{q_1, q_2, \dots, q_n\}\), forming the combined input \(\widetilde{\mathbf{q}} = [\mathbf{s}]\;\cup\;\mathbf{q}\) and feed it to the model \(\mathcal{M}\). The output is a token sequence \(\mathbf{a} = \mathcal{M}(\widetilde{\mathbf{q}})\), which (hopefully) contains the answer you need.
+Large Language Models (LLMs) such as GPT-3 [Brown _et al._, 2020] or LLaMA-3 [Touvron _et al._, 2023] with billions of parameters can **reason** straight out of the box—no fine-tuning needed—just by giving them the right **prompt**. You prepend a natural-language instruction $\mathbf{s}$ to your query sequence $\mathbf{q} = \{q_1, q_2, \dots, q_n\}$, forming the combined input $\widetilde{\mathbf{q}} = [\mathbf{s}]\;\cup\;\mathbf{q}$ and feed it to the model $\mathcal{M}$. The output is a token sequence $\mathbf{a} = \mathcal{M}(\widetilde{\mathbf{q}})$, which (hopefully) contains the answer you need.
 
 ## 3. How should LLMs be used in graphs?
 
@@ -92,19 +99,19 @@ Despite these shortcomings, NLGraph's core insight remains powerful: **LLMs can 
 Building on NLGraph, we ask: _What if we could harness LLMs' world knowledge to *selectively* rewire a graph—rather than dump the whole thing into the context window?_ To test out this hypothesis, we conduct a toy-experiment.
 
 1. Sample a manageable 10% of the subset of nodes in the graph
-2. For each node pair \(i\) and \(j\), Ask the LLM:
+2. For each node pair $i$ and $j$, Ask the LLM:
    > "Given the abstract of paper _i_ and paper _j_, and knowing we're doing node classification on research topics, would linking these two help the classifier?"
-3. Gathering the answers, construct a new adjacency matrix \(\hat{\mathcal{G}}\), which reflects the _semantic relevance_, and _efficacy in downstream task_ at once.
-4. Using the obtained \(\hat{\mathcal{G}}\), train the GNN model.
+3. Gathering the answers, construct a new adjacency matrix $\hat{\mathcal{G}}$, which reflects the _semantic relevance_, and _efficacy in downstream task_ at once.
+4. Using the obtained $\hat{\mathcal{G}}$, train the GNN model.
 
-| Model |         Graph         |    Pubmed (%)     |     Cora (%)      |     IMDB (%)      |
-| :---: | :-------------------: | :---------------: | :---------------: | :---------------: |
-|  GCN  |    \(\mathcal{G}\)    |   80.67 +- 3.27   | **65.71 +- 2.02** |   48.00 +- 3.71   |
-|  GCN  | \(\hat{\mathcal{G}}\) | **86.33 +- 1.00** |   63.29 +- 1.81   | **57.00 +- 4.07** |
-|  GAT  |    \(\mathcal{G}\)    |   76.00 +- 3.27   |   65.14 +- 2.32   |   43.67 +- 6.05   |
-|  GAT  | \(\hat{\mathcal{G}}\) | **81.67 +- 3.73** | **67.43 +- 2.19** | **46.67 +- 3.94** |
+| Model |        Graph        |    Pubmed (%)     |     Cora (%)      |     IMDB (%)      |
+| :---: | :-----------------: | :---------------: | :---------------: | :---------------: |
+|  GCN  |    $\mathcal{G}$    |   80.67 +- 3.27   | **65.71 +- 2.02** |   48.00 +- 3.71   |
+|  GCN  | $\hat{\mathcal{G}}$ | **86.33 +- 1.00** |   63.29 +- 1.81   | **57.00 +- 4.07** |
+|  GAT  |    $\mathcal{G}$    |   76.00 +- 3.27   |   65.14 +- 2.32   |   43.67 +- 6.05   |
+|  GAT  | $\hat{\mathcal{G}}$ | **81.67 +- 3.73** | **67.43 +- 2.19** | **46.67 +- 3.94** |
 
-When we train standard GNNs (GCN, GAT, GT, SEH-GNN, etc.) on our **rewired** graph \(\hat{\mathcal{G}}\) instead of the original \(\mathcal{G}\), we see consistent gains - even on both homophilous benchmarks like PubMed [Sen _et al._, 2008] and Cora [McCallum _et al._, 2000] _and_ the challenging heterophilous IMDB dataset [Fu _et al._, 2020].
+When we train standard GNNs (GCN, GAT, GT, SEH-GNN, etc.) on our **rewired** graph $\hat{\mathcal{G}}$ instead of the original $\mathcal{G}$, we see consistent gains - even on both homophilous benchmarks like PubMed [Sen _et al._, 2008] and Cora [McCallum _et al._, 2000] _and_ the challenging heterophilous IMDB dataset [Fu _et al._, 2020].
 
 > **Takeaway:** By marrying LLM-driven semantic edge predictions with classic GNN feature aggregation, we unlock a new axis of improvement that neither approach could achieve alone.
 
@@ -122,13 +129,13 @@ An outline of the whole pipeline is displayed above.
 
 ### Partition nodes into sub-clusters
 
-To avoid overwhelming the LLM, we first split \(\mathcal{G} = (\mathcal{V}, \mathcal{E}, \mathcal{T})\) into \(C\) compact clusters \(\{\mathcal{C}\_1,\dots,\mathcal{C}\_C\}\) based on feature vectors \(\mathbf{X}\in\mathbb{R}^{N\times F}\). Concretely, KMeans assigns each node \(i\) to the nearest centroid:
+To avoid overwhelming the LLM, we first split $\mathcal{G} = (\mathcal{V}, \mathcal{E}, \mathcal{T})$ into $C$ compact clusters $\{\mathcal{C}_1,\dots,\mathcal{C}_C\}$ based on feature vectors $\mathbf{X}\in\mathbb{R}^{N\times F}$. Concretely, KMeans assigns each node $i$ to the nearest centroid:
 
 $$
 \mathcal{C}_c = \bigl\{\,i : \|\mathbf{x}_i - \boldsymbol\mu_c\|\le \|\mathbf{x}_i - \boldsymbol\mu_{c'}\|\ \forall c'\bigr\}.
 $$
 
-To cap the work per cluster, we impose a maximum size \(m\) via a minimum-cost flow solver—so each cluster has at most \(\binom{m}{2}\) candidate edges. For very large graphs, we recurse: clusters bigger than \(m\) get re-KMeans'd until all are small enough.
+To cap the work per cluster, we impose a maximum size $m$ via a minimum-cost flow solver—so each cluster has at most $\binom{m}{2}$ candidate edges. For very large graphs, we recurse: clusters bigger than $m$ get re-KMeans'd until all are small enough.
 
 ### Ask LLM, should we connect?
 
@@ -147,40 +154,40 @@ Isolated nodes are harmful in performance, because they cannot perform message-p
 
 1. **Re-select** Gather nodes with no new edges, along with those that have the highest degree in each cluster, in hope that they would become connected to isolated nodes from other clusters.
 2. **Re-cluster** these "troublemakers(_i.e._ isolated nodes) and trouble-solvers (_i.e._ high-degree nodes) " using the same KMeans+size cap.
-3. **Re-query** edges inside each new mini-cluster. We repeat until every node has at least one connection in \(\hat{\mathcal{G}}\). The result is a **fully connected**, **LLM-enhanced** graph fed to any off-the-shelf GNN \(f\_{\boldsymbol\theta}\) on \((\mathbf{X},\hat{\mathbf{A}})\).
+3. **Re-query** edges inside each new mini-cluster. We repeat until every node has at least one connection in $\hat{\mathcal{G}}$. The result is a **fully connected**, **LLM-enhanced** graph fed to any off-the-shelf GNN $f_{\boldsymbol\theta}$ on $(\mathbf{X},\hat{\mathbf{A}})$.
 
 This three-stage pipeline balances **scalability**, **semantic precision**, and **complete coverage**—making LLM-powered rewiring practical for graphs of any size. Note that for practical issues, we add a patience parameter to each node, ticking off every time it becomes isolated in each round. This is to ensure that there is no endless loop of queries passing on and on.
 
 ## 5. Does it Work?
 
-Absolutely. Drop \(\hat A\) into _any_ GNN and you almost always do better.
+Absolutely. Drop $\hat A$ into _any_ GNN and you almost always do better.
 
-| Model                              | Cora (%)      | Pubmed (%)    | WikiCS (%)    | IMDB (%)      | Arxiv (%)     | History (%)   | Avg. Gain (%) |
-| :--------------------------------- | :------------ | :------------ | :------------ | :------------ | :------------ | :------------ | :-----------: |
-| **GCN**                            | 87.72 +- 0.48 | 86.22 +- 0.48 | 81.17 +- 0.48 | 61.40 +- 0.48 | 73.84 +- 0.48 | 83.02 +- 0.48 |       -       |
-| **GCN + \(\hat{\mathcal{G}}\)**    | 87.90 +- 0.48 | 89.16 +- 0.48 | 84.83 +- 0.48 | 74.90 +- 0.48 | 74.98 +- 0.48 | 84.76 +- 0.48 |    + 2.91     |
-| **GAT**                            | 87.26 +- 0.48 | 87.82 +- 0.48 | 82.19 +- 0.48 | 62.78 +- 0.48 | 73.07 +- 0.48 | 83.37 +- 0.48 |       -       |
-| **GAT + \(\hat{\mathcal{G}}\)**    | 87.44 +- 0.48 | 89.02 +- 0.48 | 84.14 +- 0.48 | 73.67 +- 0.48 | 74.78 +- 0.48 | 84.52 +- 0.48 |    + 2.20     |
-| **GT**                             | 86.22 +- 0.48 | 85.48 +- 0.48 | 79.49 +- 0.48 | 67.65 +- 0.48 | 76.14 +- 0.48 | 81.66 +- 0.48 |       -       |
-| **GT + \(\hat{\mathcal{G}}\)**     | 86.54 +- 0.48 | 89.03 +- 0.48 | 83.59 +- 0.48 | 74.36 +- 0.48 | 74.74 +- 0.48 | 83.26 +- 0.48 |    + 2.90     |
-| **SeHGNN**                         | 86.76 +- 0.48 | 88.01 +- 0.48 | 82.53 +- 0.48 | 62.76 +- 0.48 | 74.63 +- 0.48 | 84.07 +- 0.48 |       -       |
-| **SeHGNN + \(\hat{\mathcal{G}}\)** | 87.35 +- 0.48 | 89.63 +- 0.48 | 84.78 +- 0.48 | 75.46 +- 0.48 | 76.22 +- 0.48 | 84.70 +- 0.48 |    + 2.96     |
-| **Query Reduction (%)**            | - 91.77       | - 99.69       | - 99.12       | - 95.40       | - 99.30       | - 99.43       |       -       |
+| Model                            | Cora (%)      | Pubmed (%)    | WikiCS (%)    | IMDB (%)      | Arxiv (%)     | History (%)   | Avg. Gain (%) |
+| :------------------------------- | :------------ | :------------ | :------------ | :------------ | :------------ | :------------ | :-----------: |
+| **GCN**                          | 87.72 +- 0.48 | 86.22 +- 0.48 | 81.17 +- 0.48 | 61.40 +- 0.48 | 73.84 +- 0.48 | 83.02 +- 0.48 |       -       |
+| **GCN + $\hat{\mathcal{G}}$**    | 87.90 +- 0.48 | 89.16 +- 0.48 | 84.83 +- 0.48 | 74.90 +- 0.48 | 74.98 +- 0.48 | 84.76 +- 0.48 |    + 2.91     |
+| **GAT**                          | 87.26 +- 0.48 | 87.82 +- 0.48 | 82.19 +- 0.48 | 62.78 +- 0.48 | 73.07 +- 0.48 | 83.37 +- 0.48 |       -       |
+| **GAT + $\hat{\mathcal{G}}$**    | 87.44 +- 0.48 | 89.02 +- 0.48 | 84.14 +- 0.48 | 73.67 +- 0.48 | 74.78 +- 0.48 | 84.52 +- 0.48 |    + 2.20     |
+| **GT**                           | 86.22 +- 0.48 | 85.48 +- 0.48 | 79.49 +- 0.48 | 67.65 +- 0.48 | 76.14 +- 0.48 | 81.66 +- 0.48 |       -       |
+| **GT + $\hat{\mathcal{G}}$**     | 86.54 +- 0.48 | 89.03 +- 0.48 | 83.59 +- 0.48 | 74.36 +- 0.48 | 74.74 +- 0.48 | 83.26 +- 0.48 |    + 2.90     |
+| **SeHGNN**                       | 86.76 +- 0.48 | 88.01 +- 0.48 | 82.53 +- 0.48 | 62.76 +- 0.48 | 74.63 +- 0.48 | 84.07 +- 0.48 |       -       |
+| **SeHGNN + $\hat{\mathcal{G}}$** | 87.35 +- 0.48 | 89.63 +- 0.48 | 84.78 +- 0.48 | 75.46 +- 0.48 | 76.22 +- 0.48 | 84.70 +- 0.48 |    + 2.96     |
+| **Query Reduction (%)**          | - 91.77       | - 99.69       | - 99.12       | - 95.40       | - 99.30       | - 99.43       |       -       |
 
 Across six benchmarks, we evaluate the performance of synthetic adjacency graph created by LLaMA-3 8b model across four GNN architectures. The average lift is **2 - 3 pp**, with _IMDB_ jumping a full **13 pp**. Better still, we needed **< 10 %** of the pairwise queries that a naive approach would have issued.
 
 As discussed before, one of the key benefits is that we can actually create synthetic connections even for datas that **do not have adjacency matrix in the first place**. To verify this, we did additional experiments on _tabular datasets_. All the selected datasets contain textual attributes - such as reviews - for the LLM to perform semantic reasoning upon.
 
-|                   Model                    |  Titanic (%)  | Wine Quality (%) |  Compas (%)   | Mushroom (%)  | IMDB-tabular (%) | Product Reviews (%) | Avg. Gain (%) |
-| :----------------------------------------: | :-----------: | :--------------: | :-----------: | :-----------: | :--------------: | :-----------------: | :-----------: |
-|                  **MLP**                   | 81.33 +- 0.79 |  74.62 +- 0.30   | 66.52 +- 0.48 | 99.86 +- 0.03 |  94.64 +- 2.17   |    87.77 +- 0.18    |       -       |
-|      **MLP + \(\hat{\mathcal{G}}\)**       | 82.17 +- 0.73 |  78.24 +- 0.38   | 69.01 +- 0.38 | 99.88 +- 0.03 |  95.10 +- 2.18   |    91.56 +- 0.19    |    + 2.41     |
-|                 **TabNet**                 | 79.94 +- 0.96 |  75.25 +- 0.35   | 61.78 +- 0.76 | 99.35 +- 0.19 |  88.29 +- 2.02   |    89.20 +- 0.21    |       -       |
-|     **TabNet + \(\hat{\mathcal{G}}\)**     | 82.91 +- 0.69 |  76.38 +- 0.35   | 66.35 +- 0.62 | 99.78 +- 0.06 |  93.66 +- 2.12   |    91.44 +- 0.20    |    + 3.61     |
-|             **TabTransformer**             | 79.30 +- 0.90 |  71.89 +- 0.44   | 66.06 +- 0.37 | 99.80 +- 0.05 |  75.45 +- 0.98   |    87.76 +- 0.16    |       -       |
-| **TabTransformer + \(\hat{\mathcal{G}}\)** | 81.24 +- 0.61 |  73.43 +- 0.47   | 67.00 +- 0.28 | 99.80 +- 0.04 |  78.54 +- 0.65   |    89.71 +- 0.17    |    + 2.05     |
+|                  Model                   |  Titanic (%)  | Wine Quality (%) |  Compas (%)   | Mushroom (%)  | IMDB-tabular (%) | Product Reviews (%) | Avg. Gain (%) |
+| :--------------------------------------: | :-----------: | :--------------: | :-----------: | :-----------: | :--------------: | :-----------------: | :-----------: |
+|                 **MLP**                  | 81.33 +- 0.79 |  74.62 +- 0.30   | 66.52 +- 0.48 | 99.86 +- 0.03 |  94.64 +- 2.17   |    87.77 +- 0.18    |       -       |
+|      **MLP + $\hat{\mathcal{G}}$**       | 82.17 +- 0.73 |  78.24 +- 0.38   | 69.01 +- 0.38 | 99.88 +- 0.03 |  95.10 +- 2.18   |    91.56 +- 0.19    |    + 2.41     |
+|                **TabNet**                | 79.94 +- 0.96 |  75.25 +- 0.35   | 61.78 +- 0.76 | 99.35 +- 0.19 |  88.29 +- 2.02   |    89.20 +- 0.21    |       -       |
+|     **TabNet + $\hat{\mathcal{G}}$**     | 82.91 +- 0.69 |  76.38 +- 0.35   | 66.35 +- 0.62 | 99.78 +- 0.06 |  93.66 +- 2.12   |    91.44 +- 0.20    |    + 3.61     |
+|            **TabTransformer**            | 79.30 +- 0.90 |  71.89 +- 0.44   | 66.06 +- 0.37 | 99.80 +- 0.05 |  75.45 +- 0.98   |    87.76 +- 0.16    |       -       |
+| **TabTransformer + $\hat{\mathcal{G}}$** | 81.24 +- 0.61 |  73.43 +- 0.47   | 67.00 +- 0.28 | 99.80 +- 0.04 |  78.54 +- 0.65   |    89.71 +- 0.17    |    + 2.05     |
 
-Specifically, what I did was simple (1) create \(\hat{\mathcal{G}}\) via LLM through querying, and (2) add an additional message-passing layer on top of traditional tabular DNN architectures (TabNet [Arik, S. O. & Pfister, T. (2020)], TabTransformer [Huang, X. _et al._ (2020)]). With such simple integration, \(\hat{\mathcal{G}}\) enhances performance, on average, across all architecture types!
+Specifically, what I did was simple (1) create $\hat{\mathcal{G}}$ via LLM through querying, and (2) add an additional message-passing layer on top of traditional tabular DNN architectures (TabNet [Arik, S. O. & Pfister, T. (2020)], TabTransformer [Huang, X. _et al._ (2020)]). With such simple integration, $\hat{\mathcal{G}}$ enhances performance, on average, across all architecture types!
 
 ## 6. Why It Matters
 
