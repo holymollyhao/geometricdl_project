@@ -2,6 +2,9 @@
 mathjax: true
 ---
 
+<!-- load MathJax -->
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
 # AI810 Blog Post (20248056)
 
 ## Supercharging Graph Neural Networks with Large Language Models
