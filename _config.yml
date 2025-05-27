@@ -4,6 +4,3 @@ kramdown:
   input: GFM
   math_engine: mathjax
   parse_block_html: true
-
-# pick any supported theme
-theme: minima
